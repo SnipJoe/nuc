@@ -1,0 +1,69 @@
+name: incloud
+
+on:
+    workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Setup golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+          cache: 'go'
+          path: /home/runner/go
+          key: ${{ runner.os }}-go
+
+      - name: Setup Dependencies
+        run: sudo apt-get install libpcap-dev  
+
+      - name: Setting up ProjectDiscovery tools
+        env:
+          GO111MODULE: on
+        run: |
+          #go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+          #go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
+          #go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
+          #go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+          go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+          #go install -v github.com/projectdiscovery/mapcidr/cmd/mapcidr@latest
+          
+        shell: bash
+        
+      - name: Cache ProjectDiscovery tools
+        uses: actions/cache@v3
+        with:
+          cache: 'tools'
+          path: /home/runner/go
+          key: ${{ runner.os }}-go-tools
+
+
+
+      - name: Running Nuclei for vulnerability assessment
+        run: |
+          nuclei -t cves/2021/CVE-2021-44228.yaml -l urls.txt -bs 100 -c 50 -rl 300 -nc | tee nuclei_output.txt
+        shell: bash
+
+      - name: Sorting the output results
+        run: |
+          find output -type f -exec sort {} -o {} \;
+        shell: bash
+
+      - name: Create local changes
+        run: |
+          git add nuclei_output.txt
+          #git add output/active_urls.txt
+      - name: Commit results to Github
+        run: |
+          git config --local user.email "admin@inbug.org"
+          git config --global user.name "inbug-team"
+          git commit -m "InCloud Report" -a --allow-empty
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
