@@ -1,4 +1,4 @@
-name: incloud
+name: nuc
 
 on:
     workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
       - name: Setup golang
         uses: actions/setup-go@v2
         with:
-          go-version: 1.18
+          go-version: 1.19
           cache: 'go'
           path: /home/runner/go
           key: ${{ runner.os }}-go
@@ -34,29 +34,23 @@ jobs:
           
         shell: bash
         
-      - name: Cache ProjectDiscovery tools
-        uses: actions/cache@v3
-        with:
-          cache: 'tools'
-          path: /home/runner/go
-          key: ${{ runner.os }}-go-tools
-
+#       - name: Cache ProjectDiscovery tools
+#         uses: actions/cache@v3
+#         with:
+#           cache: 'tools'
+#           path: /home/runner/go
+#           key: ${{ runner.os }}-go-tools
 
 
       - name: Running Nuclei for vulnerability assessment
         run: |
-          #nuclei -t cves/ -l urls.txt -bs 100 -c 50 -rl 300 -nc | tee nuclei_output.txt
-          nuclei -t cves/2021/CVE-2021-44228.yaml -l urls.txt -bs 100 -c 50 -rl 300 -nc | tee nuclei_output.txt
-        shell: bash
-
-      - name: Sorting the output results
-        run: |
-          find nuclei_output.txt -type f -exec sort {} -o {} \;
+          #nuclei -t cves/ -l urls.txt -bs 100 -c 50 -rl 500 -nc -o nuclei_output.txt
+          nuclei -nh -tags redirect -l urls.txt -bs 100 -c 50 -rl 500 -nc -o nuclei_output.txt
         shell: bash
 
       - name: Create local changes
         run: |
-          git add nuclei_output.txt
+          git add *.txt
           #git add output/active_urls.txt
       - name: Commit results to Github
         run: |
