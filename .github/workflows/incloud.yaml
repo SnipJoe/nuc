@@ -43,7 +43,7 @@ jobs:
 
 
       - name: Running Nuclei for vulnerability assessment
-        timeout-minutes: 10
+        timeout-minutes: 350
         continue-on-error: true
         run: |
           #nuclei -t cves/ -l urls.txt -bs 100 -c 50 -rl 500 -nc -o nuclei_output.txt
