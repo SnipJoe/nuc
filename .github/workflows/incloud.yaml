@@ -43,11 +43,11 @@ jobs:
 
 
       - name: Running Nuclei for vulnerability assessment
-        timeout-minutes: 350
+        timeout-minutes: 10
         continue-on-error: true
         run: |
           #nuclei -t cves/ -l urls.txt -bs 100 -c 50 -rl 500 -nc -o nuclei_output.txt
-          nuclei -nh -t cves/ -l urls.txt -bs 100 -c 50 -rl 500 -nc -o nuclei_output.txt
+          nuclei -nh -t cves/ -l urls.txt -bs 100 -c 50 -rl 800 -nc -o nuclei_output.txt
         shell: bash
 
       - name: Create local changes
